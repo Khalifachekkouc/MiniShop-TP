@@ -1,0 +1,125 @@
+@model ProductPageViewModel
+@{
+    var p = Model.Product;
+    ViewData["Title"] = p.Name;
+    ViewData["Description"] = p.Description;
+    var returnUrl = Context.Request.Path.ToString();
+    var colors = p.OrderedColors().ToList();
+    var storages = p.OrderedStorages().ToList();
+    var color = colors.FirstOrDefault();
+    var storage = storages.FirstOrDefault();
+    var fallback = Url.Content("~/images/" + ProductDisplay.FallbackImage);
+}
+
+<div class="container page">
+    <nav class="crumbs" aria-label="Fil d'Ariane">
+        <a class="link-ui" asp-controller="Shop" asp-action="Index">Boutique</a>
+        <span aria-hidden="true">/</span>
+        <a class="link-ui" href="@Url.Action("Index", "Shop")#@p.Category!.Slug">@p.Category.Name</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page" class="crumb-current">@p.Name</span>
+    </nav>
+
+    <article class="pdp">
+        <div class="pdp-media">
+            <img src="@Url.Content("~/images/" + p.ImagePath())" alt="@p.Name@(color != null ? ", " + color.Name : "")" width="1200" height="1200" fetchpriority="high"
+                 data-fallback="@fallback" data-pdp-image />
+        </div>
+
+        <div class="pdp-body">
+            <h1 class="pdp-title">@p.Name</h1>
+            <partial name="_Stars" model="p" />
+            <p class="pdp-price num" data-pdp-price aria-live="polite">@MoneyFormat.Mad(storage?.Price ?? p.Prix)</p>
+            <p class="pdp-desc">@p.Description</p>
+            <p class="pdp-sold num">
+                @if (p.SoldCount == 1)
+                {
+                    <text>1 personne a acheté ce produit.</text>
+                }
+                else
+                {
+                    <text>@MoneyFormat.Count(p.SoldCount) personnes ont acheté ce produit.</text>
+                }
+            </p>
+            <p class="pdp-stock">
+                <span class="badge-ui badge-ui--@p.StockState()">@(p.IsOutOfStock ? "Épuisé" : p.IsLowStock ? $"Plus que {p.Stock} en stock" : "En stock")</span>
+            </p>
+
+            @* Options stay visible when the product is out of stock; their inputs belong to the buy form (form="pdp-buy"). *@
+            @if (colors.Count > 0)
+            {
+                <fieldset class="option-group">
+                    <legend class="field-label">Couleur : <span class="option-current" data-color-name>@color!.Name</span></legend>
+                    <div class="swatches">
+                        @foreach (var c in colors)
+                        {
+                            <input class="swatch-input visually-hidden" type="radio" form="pdp-buy" name="colorId" id="color-@c.Id" value="@c.Id"
+                                   checked="@(c.Id == color.Id)" data-image="@Url.Content("~/images/" + p.ColorImagePath(c))" data-name="@c.Name" />
+                            <label class="swatch" for="color-@c.Id" title="@c.Name">
+                                <span class="swatch-dot" style="--swatch: @c.Hex"></span>
+                                <span class="visually-hidden">@c.Name</span>
+                            </label>
+                        }
+                    </div>
+                </fieldset>
+            }
+            @if (storages.Count > 0)
+            {
+                <fieldset class="option-group">
+                    <legend class="field-label">Capacité</legend>
+                    <div class="chips">
+                        @foreach (var s in storages)
+                        {
+                            <input class="chip-input visually-hidden" type="radio" form="pdp-buy" name="storageId" id="storage-@s.Id" value="@s.Id"
+                                   checked="@(s.Id == storage!.Id)" data-price="@MoneyFormat.Mad(s.Price)" />
+                            <label class="chip-option" for="storage-@s.Id">@s.Label</label>
+                        }
+                    </div>
+                </fieldset>
+            }
+            @if (p.IsOutOfStock)
+            {
+                <p class="pdp-note">Ce produit n'est plus disponible pour le moment.</p>
+                <a class="btn-ui btn-secondary-ui btn-lg-ui" href="@Url.Action("Index", "Shop")#@p.Category.Slug">Voir le rayon @p.Category.Name</a>
+            }
+            else
+            {
+                <form class="pdp-buy" id="pdp-buy" method="post" asp-controller="Cart" asp-action="Add" data-add-to-cart>
+                    <input type="hidden" name="id" value="@p.Id" />
+                    <input type="hidden" name="returnUrl" value="@returnUrl" />
+                    <div class="qty-field">
+                        <label class="field-label" for="quantity">Quantité</label>
+                        <div class="stepper" data-stepper>
+                            <button type="button" class="stepper-btn" data-step="-1" aria-label="Diminuer la quantité">
+                                <i class="bi bi-dash" aria-hidden="true"></i>
+                            </button>
+                            <input class="stepper-input num" type="number" id="quantity" name="quantity" value="1"
+                                   min="1" max="@Model.MaxQuantity" step="1" inputmode="numeric" />
+                            <button type="button" class="stepper-btn" data-step="1" aria-label="Augmenter la quantité">
+                                <i class="bi bi-plus" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                        <p class="field-hint">@(Model.MaxQuantity == 1 ? "1 exemplaire maximum." : $"{Model.MaxQuantity} exemplaires maximum par commande.")</p>
+                    </div>
+                    <div class="pdp-actions">
+                        <button type="submit" class="btn-ui btn-primary-ui btn-lg-ui"><i class="bi bi-bag-plus" aria-hidden="true"></i><span>Ajouter au panier</span></button>
+                        <button type="submit" class="btn-ui btn-secondary-ui btn-lg-ui" name="intent" value="buy" data-buy-now>Acheter maintenant</button>
+                    </div>
+                </form>
+            }
+        </div>
+    </article>
+
+    @if (Model.Related.Count > 0)
+    {
+        <section class="shop-section" aria-labelledby="h-related">
+            <h2 class="section-title" id="h-related">Dans le même rayon</h2>
+            <ul class="rail" role="list">
+                @foreach (var r in Model.Related)
+                {
+                    <li class="rail-item"><partial name="_ProductCard" model="r" /></li>
+                }
+            </ul>
+        </section>
+    }
+</div>

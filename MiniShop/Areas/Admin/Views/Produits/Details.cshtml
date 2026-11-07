@@ -1,0 +1,49 @@
+@model Produit
+@{
+    ViewData["Title"] = Model.Name;
+    ViewData["HideNewButton"] = true;
+}
+
+<div class="container page">
+    <nav class="crumbs" aria-label="Fil d'Ariane">
+        <a class="link-ui" asp-action="Index">Catalogue</a>
+        <span aria-hidden="true">/</span>
+        <a class="link-ui" asp-action="Index" asp-fragment="@Model.Category?.Slug">@Model.Category?.Name</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page" class="crumb-current">@Model.Name</span>
+    </nav>
+
+    <article class="detail">
+        <div class="detail-media">
+            <img src="@Url.Content("~/images/" + Model.ImagePath())" alt="@Model.Name" width="800" height="600"
+                 data-fallback="@Url.Content("~/images/" + ProductDisplay.FallbackImage)" />
+        </div>
+
+        <div class="detail-body">
+            <h1 class="detail-title">@Model.Name</h1>
+            <p class="detail-price num">@Model.Price()</p>
+            <p><span class="badge-ui badge-ui--@Model.StockState()">@Model.StockLabel()</span></p>
+            <p class="detail-desc">@Model.Description</p>
+
+            <dl class="facts">
+                <div><dt>Catégorie</dt><dd>@Model.Category?.Name</dd></div>
+                <div><dt>Stock</dt><dd class="num">@MoneyFormat.Count(Model.Stock) @(Model.Stock == 1 ? "unité" : "unités")</dd></div>
+                <div><dt>Note</dt><dd class="num">@Model.Rating.ToString("0.0", System.Globalization.CultureInfo.GetCultureInfo("fr-FR")) / 5</dd></div>
+                <div><dt>Avis</dt><dd class="num">@MoneyFormat.Count(Model.ReviewCount)</dd></div>
+                <div><dt>Exemplaires vendus</dt><dd class="num">@MoneyFormat.Count(Model.SoldCount)</dd></div>
+                <div><dt>Référence</dt><dd class="num">#@Model.Id</dd></div>
+            </dl>
+
+            <div class="detail-actions">
+                <a class="btn-ui btn-primary-ui" asp-action="Edit" asp-route-id="@Model.Id">
+                    <i class="bi bi-pencil" aria-hidden="true"></i><span>Modifier</span>
+                </a>
+                <button type="button" class="btn-ui btn-secondary-ui btn-quiet-danger"
+                        data-bs-toggle="modal" data-bs-target="#deleteModal" data-delete-id="@Model.Id" data-delete-name="@Model.Name">
+                    <i class="bi bi-trash3" aria-hidden="true"></i><span>Supprimer</span>
+                </button>
+                <a class="link-ui" asp-area="" asp-controller="Shop" asp-action="Product" asp-route-id="@Model.Id">Voir dans la boutique</a>
+            </div>
+        </div>
+    </article>
+</div>

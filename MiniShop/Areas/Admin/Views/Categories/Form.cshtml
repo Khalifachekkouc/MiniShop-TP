@@ -1,0 +1,47 @@
+@model CategoryFormViewModel
+@{
+    var isEdit = Model.Id != null;
+    ViewData["Title"] = isEdit ? "Modifier la catégorie" : "Nouvelle catégorie";
+    ViewData["HideNewButton"] = true;
+    var nameError = ViewData.ModelState.TryGetValue("Name", out var state) && state.Errors.Count > 0 ? state.Errors[0].ErrorMessage : null;
+}
+
+<div class="container page page--narrow">
+    <nav class="crumbs" aria-label="Fil d'Ariane">
+        <a class="link-ui" asp-action="Index">Catégories</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">@(isEdit ? "Modifier" : "Nouvelle catégorie")</span>
+    </nav>
+    <h1 class="page-title">@ViewData["Title"]</h1>
+
+    <form class="product-form category-form" method="post" novalidate
+          asp-action="@(isEdit ? "Edit" : "Create")" asp-route-id="@Model.Id" data-category-form>
+        <input type="hidden" name="PourProduit" value="@(Model.Input.PourProduit ? "true" : "false")" />
+
+        <div class="field">
+            <div class="field-label-row">
+                <label class="field-label" for="Name">Nom</label>
+                <span class="field-hint num" data-counter-for="Name" aria-live="polite"></span>
+            </div>
+            <input class="input-ui" id="Name" name="Name" value="@Model.Input.Name" autocomplete="off" maxlength="@Category.NameStorage"
+                   required data-max-chars="@Category.NameMax" data-saved-name="@Model.CurrentName" placeholder="Ex. iPad"
+                   aria-describedby="name-hint name-error" aria-invalid="@(nameError != null ? "true" : "false")" />
+            <p class="field-hint" id="name-hint">
+                Entre @Category.NameMin et @Category.NameMax caractères.<br />
+                Adresse du rayon dans la boutique&nbsp;: <span class="category-slug" data-slug-preview data-taken="@string.Join(' ', Model.TakenSlugs)"
+                      data-current-slug="@Model.CurrentSlug">/#@(Model.CurrentSlug ?? CategorySlug.Unique(Model.Input.Name ?? "", Model.TakenSlugs))</span>
+            </p>
+            <span class="field-error" id="name-error" data-name-error>@nameError</span>
+        </div>
+
+        @if (isEdit && Model.ProductCount > 0)
+        {
+            <p class="field-hint">@MoneyFormat.Count(Model.ProductCount) @(Model.ProductCount == 1 ? "produit est rangé" : "produits sont rangés") dans cette catégorie.</p>
+        }
+
+        <div class="form-actions">
+            <a class="btn-ui btn-secondary-ui" asp-controller="@(Model.Input.PourProduit ? "Produits" : "Categories")" asp-action="@(Model.Input.PourProduit ? "Create" : "Index")">Annuler</a>
+            <button type="submit" class="btn-ui btn-primary-ui" data-submit>@(isEdit ? "Enregistrer" : "Créer la catégorie")</button>
+        </div>
+    </form>
+</div>

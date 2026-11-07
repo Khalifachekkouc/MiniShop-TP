@@ -1,0 +1,83 @@
+@model CartView
+@{
+    ViewData["Title"] = "Panier";
+}
+
+<div class="container page">
+    <h1 class="page-title">Panier</h1>
+
+    @foreach (var notice in Model.Notices.Distinct())
+    {
+        <p class="notice" role="status">@notice</p>
+    }
+
+    @if (Model.IsEmpty)
+    {
+        <div class="empty empty--page cart-empty">
+            <i class="bi bi-bag cart-empty-icon" aria-hidden="true"></i>
+            <h2 class="section-title">Votre panier est vide</h2>
+            <p>Ajoutez un iPhone, un Mac ou un accessoire pour commencer.</p>
+            <a class="btn-ui btn-primary-ui btn-lg-ui" asp-controller="Shop" asp-action="Index">Découvrir la boutique</a>
+        </div>
+    }
+    else
+    {
+        <div class="cart">
+            <ul class="cart-lines" role="list">
+                @foreach (var line in Model.Lines)
+                {
+                    var p = line.Product;
+                    var key = line.Key;
+                    <li class="cart-line" data-cart-line="@key">
+                        <a class="cart-thumb" asp-controller="Shop" asp-action="Product" asp-route-id="@p.Id" tabindex="-1" aria-hidden="true">
+                            <img src="@Url.Content("~/images/" + p.ColorImagePath(line.Color ?? p.DefaultColor()))" alt="" width="160" height="160"
+                                 data-fallback="@Url.Content("~/images/" + ProductDisplay.FallbackImage)" />
+                        </a>
+                        <div class="cart-info">
+                            <a class="cart-name" asp-controller="Shop" asp-action="Product" asp-route-id="@p.Id">@p.Name</a>
+                            @if (line.Options != "")
+                            {
+                                <p class="cart-options">@line.Options</p>
+                            }
+                            <p class="cart-unit num">@MoneyFormat.Mad(line.UnitPrice) l'unité</p>
+                        </div>
+                        <div class="cart-meta">
+                        <form class="cart-qty" method="post" asp-controller="Cart" asp-action="Update" data-cart-qty>
+                            <input type="hidden" name="line" value="@key" />
+                            <label class="visually-hidden" for="qty-@key">Quantité pour @p.Name @line.Options</label>
+                            <div class="stepper stepper--sm" data-stepper>
+                                <button type="button" class="stepper-btn" data-step="-1" aria-label="Diminuer la quantité">
+                                    <i class="bi bi-dash" aria-hidden="true"></i>
+                                </button>
+                                <input class="stepper-input num" type="number" id="qty-@key" name="quantity" value="@line.Quantity"
+                                       min="1" max="@line.MaxQuantity" step="1" inputmode="numeric" />
+                                <button type="button" class="stepper-btn" data-step="1" aria-label="Augmenter la quantité">
+                                    <i class="bi bi-plus" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                            <button type="submit" class="btn-ui btn-quiet-ui" data-qty-submit>Mettre à jour</button>
+                        </form>
+                        <p class="cart-total num">@MoneyFormat.Mad(line.LineTotal)</p>
+                        </div>
+                        <form class="cart-remove" method="post" asp-controller="Cart" asp-action="Remove">
+                            <input type="hidden" name="line" value="@key" />
+                            <button type="submit" class="btn-ui btn-quiet-ui btn-quiet-danger" aria-label="Retirer @p.Name @line.Options du panier">
+                                <i class="bi bi-x-lg" aria-hidden="true"></i><span>Retirer</span>
+                            </button>
+                        </form>
+                    </li>
+                }
+            </ul>
+
+            <aside class="summary on-dark" aria-labelledby="h-summary">
+                <h2 class="summary-title" id="h-summary">Récapitulatif</h2>
+                <dl class="summary-rows">
+                    <div><dt>Articles</dt><dd class="num">@Model.ItemCount</dd></div>
+                    <div class="summary-total"><dt>Total</dt><dd class="num">@MoneyFormat.Mad(Model.Total)</dd></div>
+                </dl>
+                <a class="btn-ui btn-primary-ui btn-lg-ui summary-cta" asp-controller="Checkout" asp-action="Index">Passer au paiement</a>
+                <a class="link-ui" asp-controller="Shop" asp-action="Index">Continuer mes achats</a>
+            </aside>
+        </div>
+    }
+</div>

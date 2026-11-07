@@ -1,0 +1,78 @@
+@{
+    var title = ViewData["Title"] as string ?? "Catalogue";
+    var hideNewButton = ViewData["HideNewButton"] is true;
+    var action = ViewContext.RouteData.Values["action"] as string;
+    var controller = ViewContext.RouteData.Values["controller"] as string;
+    var onProducts = controller == "Produits";
+    var success = TempData[Toast.Success] as string;
+    var error = TempData[Toast.Error] as string;
+}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
+    <meta name="theme-color" content="#1F3D2B" />
+    <meta name="robots" content="noindex" />
+    <meta name="description" content="Administration MiniShop : catalogue, prix, stock et avis des produits Apple." />
+    <title>@title – MiniShop Admin</title>
+    <link rel="icon" href="~/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href="~/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="admin-body">
+    <a class="skip-link" href="#main">Aller au contenu</a>
+
+    <div class="admin-shell">
+        <aside class="sidebar" aria-label="Administration">
+            <a class="brand" asp-area="Admin" asp-controller="Produits" asp-action="Index" aria-label="MiniShop Admin, catalogue">
+                <partial name="_Logo" />MiniShop <span class="brand-sub">Admin</span>
+            </a>
+            <nav class="sidebar-nav" aria-label="Sections">
+                <a class="sidebar-link" asp-area="Admin" asp-controller="Produits" asp-action="Index"
+                   aria-current="@(onProducts && action == "Index" ? "page" : null)">
+                    <i class="bi bi-grid" aria-hidden="true"></i><span>Catalogue</span>
+                </a>
+                <a class="sidebar-link" asp-area="Admin" asp-controller="Produits" asp-action="Create"
+                   aria-current="@(onProducts && action == "Create" ? "page" : null)">
+                    <i class="bi bi-plus-square" aria-hidden="true"></i><span>Nouveau produit</span>
+                </a>
+                <a class="sidebar-link" asp-area="Admin" asp-controller="Categories" asp-action="Index"
+                   aria-current="@(controller == "Categories" ? "page" : null)">
+                    <i class="bi bi-tags" aria-hidden="true"></i><span>Catégories</span>
+                </a>
+            </nav>
+            <a class="sidebar-link sidebar-link--shop" asp-area="" asp-controller="Shop" asp-action="Index">
+                <i class="bi bi-bag" aria-hidden="true"></i><span>Voir la boutique</span>
+            </a>
+        </aside>
+
+        <div class="admin-main">
+            @if (!hideNewButton)
+            {
+                <div class="admin-toolbar container">
+                    <a class="btn-ui btn-primary-ui" asp-area="Admin" asp-controller="Produits" asp-action="Create">
+                        <i class="bi bi-plus-lg" aria-hidden="true"></i><span>Nouveau produit</span>
+                    </a>
+                </div>
+            }
+            <main id="main" tabindex="-1">
+                @RenderBody()
+            </main>
+            <footer class="site-footer">
+                <div class="container">MiniShop, administration du catalogue. Projet scolaire, pas une vraie boutique.</div>
+            </footer>
+        </div>
+    </div>
+
+    <partial name="_Toasts" model="(success, error)" />
+    <partial name="_DeleteModal" model="@(ViewData["DeleteDialog"] as DeleteDialog ?? DeleteDialog.Product)" />
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,87 @@
+﻿@inject CartService Cart
+@inject CategoryMenu Menu
+@{
+    var title = ViewData["Title"] as string;
+    var description = ViewData["Description"] as string ?? "MiniShop : iPhone, Mac et accessoires Apple, prix en dirhams, paiement à la livraison possible.";
+    var count = Cart.Count();
+    var success = TempData[Toast.Success] as string;
+    var error = TempData[Toast.Error] as string;
+    var onHome = ViewContext.RouteData.Values["controller"] as string == "Shop" && ViewContext.RouteData.Values["action"] as string == "Index";
+    var home = Url.Action("Index", "Shop", new { area = "" });
+    var categories = await Menu.AllAsync();
+}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
+    <meta name="theme-color" content="#1F3D2B" />
+    <meta name="description" content="@description" />
+    <title>@(title == null ? "MiniShop – Apple en dirhams, payé à la livraison" : title + " – MiniShop")</title>
+    <link rel="icon" href="~/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href="~/fonts/bricolage-grotesque-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="~/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/shop.css" asp-append-version="true" />
+</head>
+<body class="shop-body">
+    <a class="skip-link" href="#main">Aller au contenu</a>
+
+    <header class="topbar">
+        <div class="container topbar-inner">
+            <a class="brand" href="@home" aria-label="MiniShop, accueil de la boutique">
+                <partial name="_Logo" />MiniShop
+            </a>
+            <nav class="topnav" aria-label="Rayons">
+                <a href="@home" aria-current="@(onHome ? "page" : null)">Boutique</a>
+                @* The header keeps room for the cart: the first aisles only, the tabs and the footer list them all. *@
+                @foreach (var c in categories.Take(4))
+                {
+                    <a href="@home#@c.Slug">@c.Name</a>
+                }
+            </nav>
+            <a class="cart-link" asp-area="" asp-controller="Cart" asp-action="Index" data-cart-link
+               aria-label="Panier, @count @(count == 1 ? "article" : "articles")">
+                <i class="bi bi-bag" aria-hidden="true"></i>
+                <span class="cart-link-label">Panier</span>
+                <span class="cart-count num" data-cart-count @(count == 0 ? "hidden" : "")>@count</span>
+            </a>
+        </div>
+    </header>
+
+    <main id="main" tabindex="-1">
+        @RenderBody()
+    </main>
+
+    <footer class="shop-footer">
+        <div class="container shop-footer-inner">
+            <div>
+                <a class="brand" href="@home" aria-label="MiniShop, accueil de la boutique"><partial name="_Logo" />MiniShop</a>
+                <p class="shop-footer-note">
+                    Boutique de démonstration réalisée pour un projet scolaire : aucune vente réelle.
+                    Prix en dirhams (MAD).
+                </p>
+            </div>
+            <nav class="shop-footer-nav" aria-label="Rayons du pied de page">
+                @foreach (var c in categories)
+                {
+                    <a href="@home#@c.Slug">@c.Name</a>
+                }
+            </nav>
+            <div class="shop-footer-links">
+                <a asp-area="" asp-controller="Cart" asp-action="Index">Panier</a>
+                <a class="shop-footer-admin" asp-area="Admin" asp-controller="Produits" asp-action="Index">Admin</a>
+            </div>
+        </div>
+    </footer>
+
+    <partial name="_Toasts" model="(success, error)" />
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,162 @@
+@model DashboardViewModel
+@{
+    ViewData["Title"] = "Catalogue";
+}
+
+<div class="container page">
+    <div class="page-head">
+        <div>
+            <h1 class="page-title">Catalogue</h1>
+            <p class="page-sub">@MoneyFormat.Count(Model.TotalProducts) @(Model.TotalProducts == 1 ? "produit" : "produits") dans @MoneyFormat.Count(Model.Categories.Count) @(Model.Categories.Count == 1 ? "catégorie" : "catégories").</p>
+        </div>
+        <form class="filters" method="get" asp-action="Index" role="search" data-filters>
+            <div class="search">
+                <label class="visually-hidden" for="q">Rechercher un produit</label>
+                <i class="bi bi-search search-icon" aria-hidden="true"></i>
+                <input class="input-ui search-input" type="search" id="q" name="q" value="@Model.Query"
+                       placeholder="Rechercher" autocomplete="off" enterkeyhint="search" data-search />
+            </div>
+            <label class="visually-hidden" for="category">Filtrer par catégorie</label>
+            <select class="input-ui select-ui" id="category" name="category" data-category-filter>
+                <option value="">Toutes les catégories</option>
+                @foreach (var c in Model.Categories)
+                {
+                    <option value="@c.Id" selected="@(Model.CategoryFilter?.Id == c.Id)">@c.Name</option>
+                }
+            </select>
+            <button type="submit" class="btn-ui btn-secondary-ui" data-filter-submit>Filtrer</button>
+    </form>
+    </div>
+
+    <section aria-label="Chiffres du catalogue">
+        <dl class="stats">
+            <div class="stat">
+                <dt>Produits</dt>
+                <dd class="num">@MoneyFormat.Count(Model.TotalProducts)</dd>
+            </div>
+            @foreach (var c in Model.Categories)
+            {
+                <div class="stat stat--category">
+                    <dt><a href="#@c.Slug" data-nav-link>@c.Name</a></dt>
+                    <dd class="num">@MoneyFormat.Count(Model.CountByCategory[c.Id])</dd>
+                </div>
+            }
+            <div class="stat">
+                <dt>Unités en stock</dt>
+                <dd class="num">@MoneyFormat.Count(Model.TotalUnits)</dd>
+            </div>
+            <div class="stat @(Model.LowStock > 0 ? "stat--warn" : "")">
+                <dt>Stock faible</dt>
+                <dd class="num">@MoneyFormat.Count(Model.LowStock)</dd>
+                <dd class="stat-note">
+                    @(Produit.LowStockThreshold) unités ou moins@(Model.OutOfStock > 0 ? $", dont {MoneyFormat.Count(Model.OutOfStock)} en rupture" : "")
+                </dd>
+            </div>
+        </dl>
+    </section>
+</div>
+
+<div class="catnav-wrap" data-catnav>
+    <div class="container catnav-inner">
+        <nav class="catnav" aria-label="Catégories" data-catnav-list>
+            @foreach (var s in Model.Sections)
+            {
+                <a class="catnav-link" href="#@s.Category.Slug" data-nav-link data-target="@s.Category.Slug">
+                    @s.Category.Name <span class="catnav-count num" data-count-for="@s.Category.Slug">@s.Products.Count</span>
+                </a>
+            }
+        </nav>
+
+    </div>
+</div>
+
+<div class="container page">
+    @if (Model.IsFiltered)
+    {
+        <p class="filter-status" data-filter-status>
+            @MoneyFormat.Count(Model.MatchCount) @(Model.MatchCount == 1 ? "résultat" : "résultats")
+            @if (Model.Query != null)
+            {
+                <text>pour « @Model.Query »</text>
+            }
+            @if (Model.CategoryFilter is Category fc)
+            {
+                <text>dans @fc.Name</text>
+            }
+            <a class="link-ui" asp-action="Index">Effacer les filtres</a>
+        </p>
+    }
+
+    <p class="empty-results" data-no-results @(Model.IsFiltered && Model.MatchCount == 0 ? "" : "hidden")>
+        Aucun produit ne correspond à cette recherche.
+        <a class="link-ui" asp-action="Index">Voir tout le catalogue</a>
+    </p>
+
+    @foreach (var sec in Model.Sections)
+    {
+        var slug = sec.Category.Slug;
+        var hideSection = Model.IsFiltered && sec.Products.Count == 0;
+        <section class="cat-section" id="@slug" aria-labelledby="@(slug)_titre" data-section="@slug" @(hideSection ? "hidden" : "")>
+            <header class="cat-head">
+                <h2 class="cat-title" id="@(slug)_titre">@sec.Category.Name</h2>
+                <a class="link-ui" asp-action="Create" asp-route-category="@sec.Category.Id">Ajouter</a>
+            </header>
+
+            @if (sec.TotalInCategory == 0)
+            {
+                <div class="empty">
+                    <p>Aucun produit dans « @sec.Category.Name » pour le moment.</p>
+                    <a class="btn-ui btn-secondary-ui" asp-action="Create" asp-route-category="@sec.Category.Id">
+                        Ajouter un produit
+                    </a>
+                </div>
+            }
+            else
+            {
+                <ul class="product-list" role="list">
+                    @foreach (var p in sec.Products)
+                    {
+                        <li class="product-row" data-product data-search-text="@(p.Name + " " + p.Description)">
+                            <a class="product-thumb" asp-action="Details" asp-route-id="@p.Id" tabindex="-1" aria-hidden="true">
+                                <img src="@Url.Content("~/images/" + p.ImagePath())" alt="" width="64" height="64" loading="lazy"
+                                     data-fallback="@Url.Content("~/images/" + ProductDisplay.FallbackImage)" />
+                            </a>
+                            <div class="product-main">
+                                <a class="product-name" asp-action="Details" asp-route-id="@p.Id">@p.Name</a>
+                                <p class="product-desc">@p.Excerpt()</p>
+                                @if (p.Colors.Count > 0 || p.Storages.Count > 0)
+                                {
+                                    <p class="product-variants" data-variants>
+                                        @if (p.Colors.Count > 0)
+                                        {
+                                            <span class="num">@p.Colors.Count @(p.Colors.Count == 1 ? "couleur" : "couleurs")</span>
+                                        }
+                                        @if (p.Storages.Count > 0)
+                                        {
+                                            <span class="num">@p.Storages.Count @(p.Storages.Count == 1 ? "capacité" : "capacités")</span>
+                                        }
+                                    </p>
+                                }
+                            </div>
+                            <div class="product-meta">
+                                <p class="product-price num">@p.Price()</p>
+                                <p class="product-stock">
+                                    <span class="badge-ui badge-ui--@p.StockState()">@p.StockLabel()</span>
+                                </p>
+                            </div>
+                            <div class="product-actions">
+                                <a class="btn-ui btn-quiet-ui" asp-action="Edit" asp-route-id="@p.Id" aria-label="Modifier @p.Name">
+                                    <i class="bi bi-pencil" aria-hidden="true"></i><span>Modifier</span>
+                                </a>
+                                <button type="button" class="btn-ui btn-quiet-ui btn-quiet-danger" aria-label="Supprimer @p.Name"
+                                        data-bs-toggle="modal" data-bs-target="#deleteModal" data-delete-id="@p.Id" data-delete-name="@p.Name">
+                                    <i class="bi bi-trash3" aria-hidden="true"></i><span>Supprimer</span>
+                                </button>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+</div>

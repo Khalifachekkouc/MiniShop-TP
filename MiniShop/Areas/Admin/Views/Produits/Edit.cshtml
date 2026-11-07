@@ -1,0 +1,22 @@
+@model Produit
+@{
+    ViewData["Title"] = "Modifier " + Model.Name;
+    ViewData["HideNewButton"] = true;
+}
+
+<div class="container page page--narrow">
+    <nav class="crumbs" aria-label="Fil d'Ariane">
+        <a class="link-ui" asp-action="Index">Catalogue</a>
+        <span aria-hidden="true">/</span>
+        <a class="link-ui" asp-action="Index" asp-fragment="@Model.Category?.Slug">@Model.Category?.Name</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">Modifier</span>
+    </nav>
+    <h1 class="page-title">Modifier le produit</h1>
+
+    <partial name="_ProductForm" model="Model" />
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

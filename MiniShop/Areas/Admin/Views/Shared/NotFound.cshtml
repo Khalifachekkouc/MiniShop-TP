@@ -1,0 +1,20 @@
+@{
+    var isCategory = ViewContext.RouteData.Values["controller"] as string == "Categories";
+    ViewData["Title"] = isCategory ? "Catégorie introuvable" : "Produit introuvable";
+}
+
+<div class="container page page--narrow">
+    <div class="empty empty--page">
+        <h1 class="page-title">@ViewData["Title"]</h1>
+        @if (isCategory)
+        {
+            <p>Cette catégorie n'existe pas ou a été supprimée.</p>
+            <a class="btn-ui btn-secondary-ui" asp-controller="Categories" asp-action="Index">Retour aux catégories</a>
+        }
+        else
+        {
+            <p>Ce produit n'existe pas ou a été supprimé.</p>
+            <a class="btn-ui btn-secondary-ui" asp-controller="Produits" asp-action="Index">Retour au catalogue</a>
+        }
+    </div>
+</div>

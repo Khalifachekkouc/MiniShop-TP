@@ -1,0 +1,44 @@
+@model OrderConfirmation
+@{
+    ViewData["Title"] = "Commande confirmée";
+}
+
+<div class="container page page--narrow">
+    <div class="confirm">
+        <i class="bi bi-check-circle-fill confirm-icon" aria-hidden="true"></i>
+        <h1 class="page-title">Merci, @Model.FullName</h1>
+        <p class="confirm-lead">Votre commande <strong class="num" data-order-number>@Model.Number</strong> est enregistrée.</p>
+
+        <ul class="confirm-lines" role="list">
+            @foreach (var line in Model.Lines)
+            {
+                <li>
+                    <span class="confirm-line-name">
+                        @line.Name
+                        @if (line.Options != "")
+                        {
+                            <span class="summary-line-options">@line.Options</span>
+                        }
+                    </span>
+                    <span class="num">× @line.Quantity</span>
+                    <span class="num">@MoneyFormat.Mad(line.Total)</span>
+                </li>
+            }
+        </ul>
+
+        <dl class="facts confirm-facts">
+            <div><dt>Articles</dt><dd class="num">@Model.ItemCount</dd></div>
+            <div><dt>Total</dt><dd class="num">@MoneyFormat.Mad(Model.Total)</dd></div>
+            <div><dt>Paiement</dt><dd>@(Model.Method == PaymentMethod.Card ? "Carte" : "À la livraison")</dd></div>
+            <div><dt>Livraison</dt><dd>@Model.City</dd></div>
+            <div><dt>E-mail</dt><dd class="confirm-email">@Model.Email</dd></div>
+        </dl>
+
+        <p class="demo-note" role="note">
+            <i class="bi bi-info-circle" aria-hidden="true"></i>
+            <span><strong>Démonstration : aucun paiement réel.</strong> Aucune commande n'est enregistrée et aucun e-mail n'est envoyé.</span>
+        </p>
+
+        <a class="btn-ui btn-primary-ui btn-lg-ui" asp-controller="Shop" asp-action="Index">Retour à la boutique</a>
+    </div>
+</div>

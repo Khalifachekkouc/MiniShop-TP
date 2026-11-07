@@ -1,0 +1,48 @@
+@model Produit
+@{
+    var url = Url.Action("Product", "Shop", new { id = Model.Id });
+    var returnUrl = Context.Request.Path + Context.Request.QueryString;
+}
+<article class="card-p">
+    <a class="card-p-media" href="@url" tabindex="-1" aria-hidden="true">
+        <img src="@Url.Content("~/images/" + Model.ImagePath())" alt="" width="600" height="600" loading="lazy"
+             data-fallback="@Url.Content("~/images/" + ProductDisplay.FallbackImage)" />
+    </a>
+    <div class="card-p-body">
+        <h3 class="card-p-name"><a href="@url">@Model.Name</a></h3>
+        <partial name="_Stars" model="Model" />
+        <p class="card-p-sold num">@MoneyFormat.Count(Model.SoldCount) @(Model.SoldCount <= 1 ? "vendu" : "vendus")</p>
+        @{
+            var swatches = Model.OrderedColors().ToList();
+        }
+        @if (swatches.Count > 1)
+        {
+            <p class="card-p-colors">
+                <span class="visually-hidden">@swatches.Count coloris :</span>
+                @foreach (var c in swatches.Take(4))
+                {
+                    <span class="card-p-dot" style="--swatch: @c.Hex" title="@c.Name"><span class="visually-hidden">@c.Name</span></span>
+                }
+                @if (swatches.Count > 4)
+                {
+                    <span class="card-p-more num">+@(swatches.Count - 4)</span>
+                }
+            </p>
+        }
+        <p class="card-p-price num">@(Model.HasStartingPrice() ? "À partir de " : "")@Model.Price()</p>
+        <form method="post" asp-controller="Cart" asp-action="Add" data-add-to-cart class="card-p-form">
+            <input type="hidden" name="id" value="@Model.Id" />
+            <input type="hidden" name="returnUrl" value="@returnUrl" />
+            @if (Model.IsOutOfStock)
+            {
+                <button type="submit" class="btn-ui btn-secondary-ui card-p-btn" disabled>Épuisé</button>
+            }
+            else
+            {
+                <button type="submit" class="btn-ui btn-secondary-ui card-p-btn" aria-label="Ajouter @Model.Name au panier">
+                    <i class="bi bi-bag-plus" aria-hidden="true"></i><span>Ajouter au panier</span>
+                </button>
+            }
+        </form>
+    </div>
+</article>

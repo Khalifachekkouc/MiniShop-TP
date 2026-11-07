@@ -1,0 +1,28 @@
+@model StorageRow
+@{
+    // One « Stockage » row: label and full price of that tier. Bound as Storages[key].* with Storages.Index = key.
+    var k = Model.Key;
+    var p = $"Storages[{k}]";
+    var id = $"storage-{k}";
+}
+<li class="variant-row variant-row--storage" data-row>
+    <input type="hidden" name="Storages.Index" value="@k" />
+    @if (Model.Id != null)
+    {
+        <input type="hidden" name="@(p).Id" value="@Model.Id" />
+    }
+    <div class="variant-fields">
+        <div class="field">
+            <label class="field-label" for="@id-label">Capacité</label>
+            <input class="input-ui" id="@id-label" name="@(p).Label" value="@Model.Label" maxlength="20" autocomplete="off" placeholder="Ex. 256 Go" />
+        </div>
+        <div class="field">
+            <label class="field-label" for="@id-price">Prix (MAD)</label>
+            <input class="input-ui num" id="@id-price" name="@(p).Price" type="number" step="0.01" min="0.01" inputmode="decimal"
+                   value="@(Model.Price?.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))" />
+        </div>
+    </div>
+    <div class="variant-tools">
+        <button type="button" class="btn-ui btn-quiet-ui btn-quiet-danger btn-icon-ui" data-remove-row aria-label="Retirer cette capacité"><i class="bi bi-trash3" aria-hidden="true"></i></button>
+    </div>
+</li>

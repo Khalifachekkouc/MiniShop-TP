@@ -1,0 +1,124 @@
+@model HomeViewModel
+@{
+    var hero = Model.Hero;
+    var returnUrl = Context.Request.Path.ToString();
+    var total = Model.ProductCount;
+    var aisles = Model.Sections.Count;
+}
+
+<section class="hero" aria-labelledby="hero-title">
+    <div class="container hero-inner">
+        <div class="hero-text on-dark">
+            <h1 class="hero-title" id="hero-title">Payez votre Apple en dirhams, à&nbsp;la livraison.</h1>
+            <p class="hero-lead">@MoneyFormat.Count(total) @(total <= 1 ? "produit" : "produits") en @MoneyFormat.Count(aisles) @(aisles <= 1 ? "rayon" : "rayons"), paiement en ligne ou au livreur.</p>
+            @if (hero != null)
+            {
+                <div class="hero-pick">
+                    <p class="hero-pick-line">
+                        <span class="hero-product-name" id="hero-product-name">@hero.Name</span>
+                        <span class="hero-price num">@hero.Price()</span>
+                    </p>
+                    <div class="hero-actions">
+                        <form method="post" asp-controller="Cart" asp-action="Add" data-add-to-cart>
+                            <input type="hidden" name="id" value="@hero.Id" />
+                            <input type="hidden" name="returnUrl" value="@returnUrl" />
+                            @if (hero.IsOutOfStock)
+                            {
+                                <button type="submit" class="btn-ui btn-primary-ui btn-lg-ui" disabled>Épuisé</button>
+                            }
+                            else
+                            {
+                                <button type="submit" class="btn-ui btn-primary-ui btn-lg-ui">
+                                    <i class="bi bi-bag-plus" aria-hidden="true"></i><span>Ajouter au panier</span>
+                                </button>
+                            }
+                        </form>
+                        <a class="btn-ui btn-secondary-ui btn-lg-ui" asp-controller="Shop" asp-action="Product" asp-route-id="@hero.Id">Voir le produit</a>
+                    </div>
+                </div>
+            }
+            <ul class="hero-aisles" role="list" aria-label="Aller au rayon">
+                @foreach (var s in Model.Sections.Take(HomeViewModel.HeroAisleLinks))
+                {
+                    <li><a class="arrow-link" href="#@s.Category.Slug"><partial name="_Arrow" /><span class="arrow-text">@s.Category.Name</span></a></li>
+                }
+            </ul>
+        </div>
+
+        @if (hero != null)
+        {
+            <figure class="hero-product">
+                <a class="hero-media" asp-controller="Shop" asp-action="Product" asp-route-id="@hero.Id" tabindex="-1" aria-hidden="true">
+                    <img src="@Url.Content("~/images/" + hero.HeroImagePath())" alt="" width="1200" height="1200" fetchpriority="high"
+                         data-fallback="@Url.Content("~/images/" + hero.ImagePath())" />
+                </a>
+                <figcaption class="hero-caption num">
+                    @(Model.HeroIsTopSeller ? "Le plus vendu de la boutique" : "Parmi les plus vendus de la boutique"), avec @MoneyFormat.Count(hero.SoldCount) exemplaires.
+                </figcaption>
+            </figure>
+        }
+    </div>
+</section>
+
+@if (hero == null)
+{
+    <div class="container page">
+        <div class="empty empty--page">
+            <h2 class="section-title">La boutique est vide</h2>
+            <p>Aucun produit n'est en vente pour le moment.</p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="catnav-wrap">
+        <div class="container catnav-inner">
+            <nav class="catnav" aria-label="Rayons de la page" data-catnav-list>
+                @if (Model.BestSellers.Count > 0)
+                {
+                    <a class="catnav-link" href="#meilleures-ventes" data-target="meilleures-ventes">Meilleures ventes</a>
+                }
+                @foreach (var s in Model.Sections)
+                {
+                    <a class="catnav-link" href="#@s.Category.Slug" data-target="@s.Category.Slug">@s.Category.Name <span class="catnav-count num">@s.Products.Count</span></a>
+                }
+            </nav>
+        </div>
+    </div>
+
+    <div class="container shop-sections">
+        @if (Model.BestSellers.Count > 0)
+        {
+            <section class="shop-section" id="meilleures-ventes" aria-labelledby="meilleures-ventes_titre" data-section="meilleures-ventes">
+                <h2 class="section-title" id="meilleures-ventes_titre">Meilleures ventes <span class="section-count">classées par exemplaires vendus</span></h2>
+                <ul class="rail" role="list">
+                    @foreach (var p in Model.BestSellers)
+                    {
+                        <li class="rail-item"><partial name="_ProductCard" model="p" /></li>
+                    }
+                </ul>
+            </section>
+        }
+
+        @* Slugs only hold a-z, 0-9 and dashes, so an id ending in _titre never meets a section id. *@
+        @foreach (var (c, products) in Model.Sections)
+        {
+            <section class="shop-section" id="@c.Slug" aria-labelledby="@(c.Slug)_titre" data-section="@c.Slug">
+                <h2 class="section-title" id="@(c.Slug)_titre">@c.Name <span class="section-count num">@products.Count @(products.Count <= 1 ? "modèle" : "modèles")</span></h2>
+                @if (products.Count == 0)
+                {
+                    <p class="empty empty--aisle">Bientôt de nouveaux articles dans ce rayon.</p>
+                }
+                else
+                {
+                    <ul class="card-grid" role="list">
+                        @foreach (var p in products)
+                        {
+                            <li><partial name="_ProductCard" model="p" /></li>
+                        }
+                    </ul>
+                }
+            </section>
+        }
+    </div>
+}

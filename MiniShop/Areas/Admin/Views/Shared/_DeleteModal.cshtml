@@ -1,0 +1,17 @@
+@model DeleteDialog
+@* One confirmation dialog for the whole page. A trigger fills it through data-delete-id / data-delete-name. *@
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalTitle" aria-describedby="deleteModalBody" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content dialog" method="post" asp-controller="@Model.Controller" asp-action="Delete" data-delete-form>
+            <input type="hidden" name="id" value="" data-delete-id-field />
+            <h2 class="dialog-title" id="deleteModalTitle">@Model.Title</h2>
+            <p class="dialog-body" id="deleteModalBody">
+                <strong data-delete-label>@Model.Subject</strong> @Model.Consequence
+            </p>
+            <div class="dialog-actions">
+                <button type="button" class="btn-ui btn-secondary-ui" data-bs-dismiss="modal">Annuler</button>
+                <button type="submit" class="btn-ui btn-danger-ui">Supprimer</button>
+            </div>
+        </form>
+    </div>
+</div>

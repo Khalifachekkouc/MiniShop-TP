@@ -1,0 +1,79 @@
+@model List<CategoryRow>
+@{
+    ViewData["Title"] = "Catégories";
+    ViewData["HideNewButton"] = true;
+    ViewData["DeleteDialog"] = DeleteDialog.Category;
+}
+
+<div class="container page page--narrow">
+    <div class="page-head">
+        <div>
+            <h1 class="page-title">Catégories</h1>
+            <p class="page-sub">Chaque catégorie est un rayon de la boutique, dans cet ordre : onglets, sections et pied de page.</p>
+        </div>
+        <a class="btn-ui btn-primary-ui" asp-action="Create">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i><span>Nouvelle catégorie</span>
+        </a>
+    </div>
+
+    @if (Model.Count == 0)
+    {
+        <div class="empty">
+            <p>Aucune catégorie pour le moment. Créez la première pour ouvrir un rayon dans la boutique.</p>
+            <a class="btn-ui btn-secondary-ui" asp-action="Create">Créer une catégorie</a>
+        </div>
+    }
+    else
+    {
+        <ol class="category-list" role="list" data-category-list>
+            @for (var i = 0; i < Model.Count; i++)
+            {
+                var c = Model[i];
+                <li class="category-row" id="categorie-@c.Id" tabindex="-1" data-category-row data-category-id="@c.Id">
+                    <div class="category-main">
+                        <a class="product-name category-name" asp-action="Edit" asp-route-id="@c.Id">@c.Name</a>
+                        <p class="category-meta">
+                            <span class="num" data-category-count>@MoneyFormat.Count(c.ProductCount) @(c.ProductCount == 1 ? "produit" : "produits")</span>
+                            <span class="category-slug">/#@c.Slug</span>
+                        </p>
+                    </div>
+                    <div class="category-order">
+                        <form method="post" asp-action="Move" asp-route-id="@c.Id">
+                            <input type="hidden" name="direction" value="-1" />
+                            <button type="submit" class="btn-ui btn-quiet-ui btn-icon-ui" aria-label="Monter « @c.Name »" disabled="@(i == 0)" data-move-up>
+                                <i class="bi bi-arrow-up" aria-hidden="true"></i>
+                            </button>
+                        </form>
+                        <form method="post" asp-action="Move" asp-route-id="@c.Id">
+                            <input type="hidden" name="direction" value="1" />
+                            <button type="submit" class="btn-ui btn-quiet-ui btn-icon-ui" aria-label="Descendre « @c.Name »" disabled="@(i == Model.Count - 1)" data-move-down>
+                                <i class="bi bi-arrow-down" aria-hidden="true"></i>
+                            </button>
+                        </form>
+                    </div>
+                    <div class="product-actions">
+                        <a class="btn-ui btn-quiet-ui" asp-action="Edit" asp-route-id="@c.Id" aria-label="Modifier @c.Name">
+                            <i class="bi bi-pencil" aria-hidden="true"></i><span>Modifier</span>
+                        </a>
+                        @if (c.ProductCount == 0)
+                        {
+                            <button type="button" class="btn-ui btn-quiet-ui btn-quiet-danger" aria-label="Supprimer @c.Name"
+                                    data-bs-toggle="modal" data-bs-target="#deleteModal" data-delete-id="@c.Id" data-delete-name="@c.Name">
+                                <i class="bi bi-trash3" aria-hidden="true"></i><span>Supprimer</span>
+                            </button>
+                        }
+                        else
+                        {
+                            @* Not empty: the server explains what to do first, nothing is deleted. *@
+                            <form method="post" asp-action="Delete" asp-route-id="@c.Id">
+                                <button type="submit" class="btn-ui btn-quiet-ui btn-quiet-danger" aria-label="Supprimer @c.Name" data-delete-blocked>
+                                    <i class="bi bi-trash3" aria-hidden="true"></i><span>Supprimer</span>
+                                </button>
+                            </form>
+                        }
+                    </div>
+                </li>
+            }
+        </ol>
+    }
+</div>

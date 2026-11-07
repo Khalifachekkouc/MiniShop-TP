@@ -1,0 +1,24 @@
+@model (string? Success, string? Error)
+@* Toast region shared by both layouts. site.js also adds toasts here (add to cart). *@
+<div class="toast-region" aria-live="polite" aria-atomic="true" data-toast-region>
+    @if (Model.Success != null)
+    {
+        <div class="toast-ui" role="status" data-autohide>
+            <i class="bi bi-check-circle-fill toast-icon toast-icon--ok" aria-hidden="true"></i>
+            <p class="toast-text">@Model.Success</p>
+            <button type="button" class="toast-close" data-toast-dismiss aria-label="Fermer">
+                <i class="bi bi-x-lg" aria-hidden="true"></i>
+            </button>
+        </div>
+    }
+    @if (Model.Error != null)
+    {
+        <div class="toast-ui" role="alert">
+            <i class="bi bi-exclamation-circle-fill toast-icon toast-icon--error" aria-hidden="true"></i>
+            <p class="toast-text">@Model.Error</p>
+            <button type="button" class="toast-close" data-toast-dismiss aria-label="Fermer">
+                <i class="bi bi-x-lg" aria-hidden="true"></i>
+            </button>
+        </div>
+    }
+</div>

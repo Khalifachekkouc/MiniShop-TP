@@ -1,0 +1,13 @@
+@model int
+@{
+    var notFound = Model == 404;
+    ViewData["Title"] = notFound ? "Page introuvable" : "Erreur " + Model;
+}
+
+<div class="container page page--narrow">
+    <div class="empty empty--page">
+        <h1 class="page-title">@(notFound ? "Page introuvable" : "Une erreur est survenue")</h1>
+        <p>@(notFound ? "Cette adresse ne correspond à aucune page du tableau de bord." : $"Le serveur a répondu avec le code {Model}.")</p>
+        <a class="btn-ui btn-secondary-ui" asp-area="" asp-controller="Shop" asp-action="Index">Retour à la boutique</a>
+    </div>
+</div>

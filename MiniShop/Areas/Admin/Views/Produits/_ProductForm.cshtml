@@ -1,0 +1,156 @@
+@model Produit
+@{
+    var isEdit = Model.Id > 0;
+    // Only a real photo is shown on Edit; the default illustration never appears in the form.
+    var hasPhoto = isEdit && !string.IsNullOrWhiteSpace(Model.Image) && Model.MainImagePath() != ProductDisplay.FallbackImage;
+    var currentImage = hasPhoto ? Url.Content("~/images/" + Model.MainImagePath()) : null;
+    var hasImageError = ViewData.ModelState.TryGetValue("imageFile", out var imgState) && imgState.Errors.Count > 0;
+    var colorRows = ViewData["ColorRows"] as List<ColorRow> ?? [];
+    var storageRows = ViewData["StorageRows"] as List<StorageRow> ?? [];
+    var categories = ViewData["Categories"] as IReadOnlyList<Category> ?? [];
+}
+
+<form class="product-form" method="post" enctype="multipart/form-data" novalidate
+      asp-action="@(isEdit ? "Edit" : "Create")" asp-route-id="@(isEdit ? Model.Id.ToString() : null)" data-product-form>
+
+    <div asp-validation-summary="ModelOnly" class="form-summary" role="alert"></div>
+
+    <div class="form-grid">
+        <div class="form-fields">
+            <div class="field">
+                <label class="field-label" asp-for="Name"></label>
+                <input class="input-ui" asp-for="Name" autocomplete="off" maxlength="@Produit.NameMaxLength"
+                       placeholder="Ex. iPhone 17 Pro 256 Go" />
+                <span class="field-error" asp-validation-for="Name"></span>
+            </div>
+
+            <fieldset class="field">
+                <legend class="field-label">Catégorie</legend>
+                @if (categories.Count == 0)
+                {
+                    <p class="field-hint">Aucune catégorie pour le moment : créez-en une pour y ranger ce produit.</p>
+                }
+                else
+                {
+                    <div class="segmented@(categories.Count > 4 ? " segmented--wrap" : "")" style="--cols: @Math.Min(categories.Count, 4)">
+                        @foreach (var c in categories)
+                        {
+                            <input class="segmented-input" type="radio" id="cat-@c.Id" name="CategoryId" value="@c.Id"
+                                   checked="@(Model.CategoryId == c.Id)" />
+                            <label class="segmented-option" for="cat-@c.Id">@c.Name</label>
+                        }
+                    </div>
+                }
+                <a class="link-ui field-link" asp-controller="Categories" asp-action="Create" asp-route-pourProduit="true">
+                    <i class="bi bi-plus-lg" aria-hidden="true"></i><span>Nouvelle catégorie</span>
+                </a>
+                <span class="field-error" asp-validation-for="CategoryId"></span>
+            </fieldset>
+
+            <div class="field-row">
+                <div class="field">
+                    <label class="field-label" asp-for="Prix"></label>
+                    <input class="input-ui num" asp-for="Prix" type="number" step="0.01"
+                           inputmode="decimal" placeholder="0" value="@(Model.Prix > 0 ? Model.Prix.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) : "")" />
+                    <span class="field-error" asp-validation-for="Prix"></span>
+                </div>
+                <div class="field">
+                    <label class="field-label" asp-for="Stock"></label>
+                    <input class="input-ui num" asp-for="Stock" type="number" step="1" inputmode="numeric" />
+                    <span class="field-error" asp-validation-for="Stock"></span>
+                </div>
+            </div>
+
+            <div class="field-row field-row--3">
+                <div class="field">
+                    <label class="field-label" asp-for="Rating"></label>
+                    <input class="input-ui num" asp-for="Rating" type="number" step="0.1" inputmode="decimal"
+                           value="@Model.Rating.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)" />
+                    <span class="field-error" asp-validation-for="Rating"></span>
+                </div>
+                <div class="field">
+                    <label class="field-label" asp-for="ReviewCount"></label>
+                    <input class="input-ui num" asp-for="ReviewCount" type="number" step="1" inputmode="numeric" />
+                    <span class="field-error" asp-validation-for="ReviewCount"></span>
+                </div>
+                <div class="field">
+                    <label class="field-label" asp-for="SoldCount"></label>
+                    <input class="input-ui num" asp-for="SoldCount" type="number" step="1" inputmode="numeric" />
+                    <span class="field-error" asp-validation-for="SoldCount"></span>
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="field-label-row">
+                    <label class="field-label" asp-for="Description"></label>
+                    <span class="field-hint num" data-counter-for="Description" aria-live="polite"></span>
+                </div>
+                <textarea class="input-ui textarea-ui" asp-for="Description" rows="5" maxlength="@Produit.DescriptionMaxLength"
+                          placeholder="Ce que le client doit savoir : écran, puce, capacité."></textarea>
+                <span class="field-error" asp-validation-for="Description"></span>
+            </div>
+        </div>
+
+        <div class="form-media">
+            <span class="field-label" id="image-label">Image</span>
+            <div class="dropzone@(hasPhoto ? " has-image" : "")" data-dropzone>
+                <input class="visually-hidden file-input" type="file" id="imageFile" name="imageFile" accept="@ImageStorage.Accept"
+                       aria-labelledby="image-label" aria-describedby="image-hint image-error" data-max-bytes="@ImageStorage.MaxBytes" data-error="image-error" />
+                <div class="dropzone-empty" data-dropzone-empty hidden="@hasPhoto">
+                    <i class="bi bi-upload dropzone-icon" aria-hidden="true"></i>
+                    <label class="btn-ui btn-secondary-ui dropzone-pick" for="imageFile">Choisir une image</label>
+                    <p class="dropzone-text">ou glissez-la ici</p>
+                </div>
+                <div class="dropzone-preview" data-dropzone-preview hidden="@(!hasPhoto)">
+                    <img src="@currentImage" alt="Aperçu de l'image du produit" width="480" height="480"
+                         data-preview-img data-current="@currentImage" />
+                    <div class="dropzone-actions">
+                        <label class="dropzone-chip" for="imageFile" data-change-label>@(hasPhoto ? "Changer l'image" : "Changer")</label>
+                        <button type="button" class="dropzone-chip" data-remove-image hidden>Retirer</button>
+                    </div>
+                </div>
+            </div>
+            <p class="field-hint" id="image-hint">
+                JPG, PNG ou WebP, 5 Mo maximum.@(isEdit ? " Sans nouveau fichier, l'image actuelle est conservée." : " Sans fichier, une image par défaut est utilisée.")
+            </p>
+            <span class="field-error" id="image-error" data-image-error>@(hasImageError ? imgState!.Errors[0].ErrorMessage : "")</span>
+        </div>
+    </div>
+
+    <fieldset class="variant-block" data-repeater data-max="@ProductColor.MaxPerProduct">
+        <legend class="variant-title">Couleurs</legend>
+        <p class="field-hint">Jusqu'à @ProductColor.MaxPerProduct couleurs, chacune avec sa photo. La première est celle affichée par défaut (cartes, panier).</p>
+        <ol class="variant-rows" role="list" data-rows>
+            @foreach (var row in colorRows)
+            {
+                <partial name="_ColorRow" model="row" />
+            }
+        </ol>
+        <template data-row-template>
+            <partial name="_ColorRow" model="@(new ColorRow("__k__", null, "", "#1F3D2B", null))" />
+        </template>
+        <button type="button" class="btn-ui btn-secondary-ui variant-add" data-add-row><i class="bi bi-plus-lg" aria-hidden="true"></i><span>Ajouter une couleur</span></button>
+    </fieldset>
+
+    <fieldset class="variant-block" data-repeater data-max="@ProductStorage.MaxPerProduct">
+        <legend class="variant-title">Stockage</legend>
+        <p class="field-hint">Jusqu'à @ProductStorage.MaxPerProduct capacités, chacune avec son prix complet. Le prix du produit devient celui de la moins chère.</p>
+        <ol class="variant-rows" role="list" data-rows>
+            @foreach (var row in storageRows)
+            {
+                <partial name="_StorageRow" model="row" />
+            }
+        </ol>
+        <template data-row-template>
+            <partial name="_StorageRow" model="@(new StorageRow("__k__", null, "", null))" />
+        </template>
+        <button type="button" class="btn-ui btn-secondary-ui variant-add" data-add-row><i class="bi bi-plus-lg" aria-hidden="true"></i><span>Ajouter une capacité</span></button>
+    </fieldset>
+
+    <div class="form-actions">
+        <a class="btn-ui btn-secondary-ui" asp-action="@(isEdit ? "Details" : "Index")" asp-route-id="@(isEdit ? Model.Id.ToString() : null)">Annuler</a>
+        <button type="submit" class="btn-ui btn-primary-ui" data-submit>
+            @(isEdit ? "Enregistrer" : "Ajouter le produit")
+        </button>
+    </div>
+</form>

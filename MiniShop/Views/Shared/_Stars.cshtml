@@ -1,0 +1,17 @@
+@model Produit
+@{
+    var fill = Math.Clamp(Model.Rating / 5m * 100m, 0m, 100m).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture);
+    var rating = Model.Rating.ToString("0.0", System.Globalization.CultureInfo.GetCultureInfo("fr-FR"));
+}
+@if (Model.ReviewCount == 0)
+{
+    <p class="rating rating--none">Pas encore d'avis</p>
+    return;
+}
+<p class="rating">
+    <span class="stars" role="img" aria-label="Note : @rating sur 5">
+        <span class="stars-fill" style="width: @fill%"></span>
+    </span>
+    <span class="rating-value num">@rating</span>
+    <span class="rating-count num">(@MoneyFormat.Count(Model.ReviewCount) avis)</span>
+</p>

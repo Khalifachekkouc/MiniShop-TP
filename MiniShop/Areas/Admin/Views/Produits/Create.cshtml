@@ -1,0 +1,20 @@
+@model Produit
+@{
+    ViewData["Title"] = "Nouveau produit";
+    ViewData["HideNewButton"] = true;
+}
+
+<div class="container page page--narrow">
+    <nav class="crumbs" aria-label="Fil d'Ariane">
+        <a class="link-ui" asp-action="Index">Catalogue</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">Nouveau produit</span>
+    </nav>
+    <h1 class="page-title">Nouveau produit</h1>
+
+    <partial name="_ProductForm" model="Model" />
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

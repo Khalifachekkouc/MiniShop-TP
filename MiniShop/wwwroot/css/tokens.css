@@ -1,0 +1,72 @@
+/* MiniShop tokens: two client colours, Forest Green #1F3D2B and Sand Beige #E8DCC4,
+   and only mixes of the two (plus white/black for lighter and deeper steps).
+   Contrast (WCAG 2.x), checked for every pair the pages use:
+     forest on sand 8.78 · forest on card 10.13 · forest on well 7.84
+     muted on sand 5.27 · muted on card 6.08 · muted on well 4.71
+     sand on forest 8.78 · sand on forest-raised 6.19 · sand on forest-deep 10.16
+     sand-muted on forest 6.73 · sand-muted on forest-raised 4.75
+     field edge on sand 3.40, on card 3.92 (non-text, 3:1)
+     filled star (forest) on card 10.13; the rating value is always written next to the stars */
+:root {
+  /* the two client colours */
+  --color-forest: #1F3D2B;
+  --color-sand: #E8DCC4;
+
+  /* forest family (dark surfaces) */
+  --color-forest-deep: #193223;     /* forest + 18 % black: hover on green buttons */
+  --color-forest-raised: #3B5340;   /* forest + 14 % sand: pills and panels on green */
+  --color-forest-line: #4F6350;     /* forest + 24 % sand: hairlines on green */
+  --color-sand-muted: #C8C3AC;      /* sand + 16 % forest: secondary text on green */
+
+  /* sand family (light surfaces) */
+  --color-card: #F2ECDF;            /* sand + 45 % white: cards, photo plinth */
+  --color-sand-bright: #EEE5D3;     /* sand + 25 % white: hover on beige buttons */
+  --color-well: #DAD1B9;            /* sand + 7 % forest: wells, table heads */
+  --color-rule: #C0BCA5;            /* sand + 20 % forest: hairlines on sand */
+  --color-field-edge: #6B7965;      /* sand + 62 % forest: input borders (3:1) */
+  --color-muted: #475D4A;           /* forest + 20 % sand: secondary text on sand */
+  --color-star-empty: #ACAC96;      /* decorative empty star */
+
+  /* roles (what the components use) */
+  --color-paper: var(--color-sand);
+  --color-ink: var(--color-forest);
+  --color-ink-2: var(--color-forest);
+  --color-accent: var(--color-forest);
+  --color-accent-ink: var(--color-sand);
+  --color-focus: var(--color-forest);
+  --color-focus-on-dark: var(--color-sand);
+  --color-dot: color-mix(in srgb, var(--color-sand) 16%, transparent);
+  --color-glass: color-mix(in srgb, var(--color-sand) 9%, transparent);
+  --color-glass-line: color-mix(in srgb, var(--color-sand) 22%, transparent);
+  --color-shadow: color-mix(in srgb, var(--color-forest) 14%, transparent);
+  --color-scrim: color-mix(in srgb, var(--color-forest) 55%, transparent);
+
+  /* type */
+  --font-display: "Bricolage Grotesque", "Manrope", ui-sans-serif, sans-serif;
+  --font-body: "Manrope", ui-sans-serif, sans-serif;
+  --font-outlier: var(--font-body);
+  --font-icons: "bootstrap-icons";
+  --tracking-display: -0.035em;
+  --tracking-title: -0.02em;
+
+  --text-xs: 0.75rem; --text-sm: 0.875rem; --text-md: 1rem; --text-lg: 1.125rem; --text-xl: 1.375rem;
+  --text-2xl: 1.75rem; --text-3xl: 2.25rem; --text-4xl: 3rem;
+  --text-hero: clamp(2.4rem, min(5.6vw, 8.6svh), 4.25rem);   /* follows the width and the height, so the hero fits the first screen */
+
+  /* space, radius, motion */
+  --space-3xs: 2px; --space-2xs: 4px; --space-xs: 8px; --space-sm: 12px; --space-md: 16px; --space-lg: 24px;
+  --space-xl: 40px; --space-2xl: 64px; --space-3xl: 96px; --space-4xl: 144px;
+  --radius-pill: 999px; --radius-card: 24px; --radius-control: 14px; --radius-thumb: 16px; --rule-hair: 1px;
+  --shadow-card: 0 1px 0 var(--color-shadow);
+  --shadow-float: 0 18px 40px -18px var(--color-scrim), 0 2px 6px var(--color-shadow);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --dur-micro: 140ms; --dur-short: 240ms; --dur-long: 480ms;
+
+  /* layout */
+  --container: 1240px; --gutter: 40px; --gap-columns: 24px;
+  --section-gap-s: 64px; --section-gap: 96px; --section-gap-l: 128px;
+  --control-h: 44px; --topbar-h: 72px; --catnav-h: 64px;
+  --z-base: 1; --z-raised: 10; --z-dropdown: 100; --z-sticky: 200; --z-sticky-nav: 300; --z-modal: 400; --z-toast: 500; --z-tooltip: 600;
+}

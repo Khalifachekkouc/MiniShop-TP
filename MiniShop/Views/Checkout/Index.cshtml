@@ -1,0 +1,138 @@
+@model CheckoutViewModel
+@{
+    ViewData["Title"] = "Paiement";
+    var f = Model.Form;
+}
+
+<div class="container page">
+    <nav class="crumbs" aria-label="Fil d'Ariane">
+        <a class="link-ui" asp-controller="Cart" asp-action="Index">Panier</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">Paiement</span>
+    </nav>
+    <h1 class="page-title">Paiement</h1>
+    <p class="demo-note" role="note">
+        <i class="bi bi-info-circle" aria-hidden="true"></i>
+        <span><strong>Démonstration : aucun paiement réel.</strong> Rien n'est débité et les données de carte ne quittent pas votre navigateur.</span>
+    </p>
+
+    <div class="checkout">
+        <form class="checkout-form" method="post" asp-controller="Checkout" asp-action="Index" novalidate data-checkout-form>
+            <div asp-validation-summary="ModelOnly" class="form-summary" role="alert"></div>
+
+            <fieldset class="checkout-group">
+                <legend class="checkout-legend">Contact</legend>
+                <div class="field">
+                    <label class="field-label" asp-for="Form.FullName"></label>
+                    <input class="input-ui" asp-for="Form.FullName" autocomplete="name" />
+                    <span class="field-error" asp-validation-for="Form.FullName"></span>
+                </div>
+                <div class="field-row">
+                    <div class="field">
+                        <label class="field-label" asp-for="Form.Email"></label>
+                        <input class="input-ui" asp-for="Form.Email" type="email" autocomplete="email" inputmode="email" />
+                        <span class="field-error" asp-validation-for="Form.Email"></span>
+                    </div>
+                    <div class="field">
+                        <label class="field-label" asp-for="Form.Phone"></label>
+                        <input class="input-ui" asp-for="Form.Phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="06 12 34 56 78" />
+                        <span class="field-error" asp-validation-for="Form.Phone"></span>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset class="checkout-group">
+                <legend class="checkout-legend">Livraison</legend>
+                <div class="field">
+                    <label class="field-label" asp-for="Form.City"></label>
+                    <input class="input-ui" asp-for="Form.City" list="cities" autocomplete="address-level2" />
+                    <datalist id="cities">
+                        @foreach (var c in Cities.Morocco)
+                        {
+                            <option value="@c"></option>
+                        }
+                    </datalist>
+                    <span class="field-error" asp-validation-for="Form.City"></span>
+                </div>
+                <div class="field">
+                    <label class="field-label" asp-for="Form.Address"></label>
+                    <textarea class="input-ui textarea-ui textarea-ui--short" asp-for="Form.Address" rows="2" autocomplete="street-address"
+                              placeholder="Rue, numéro, quartier"></textarea>
+                    <span class="field-error" asp-validation-for="Form.Address"></span>
+                </div>
+            </fieldset>
+
+            <fieldset class="checkout-group pay">
+                <legend class="checkout-legend">Paiement</legend>
+                <div class="segmented segmented--2">
+                    <input class="segmented-input" type="radio" id="pm-card" name="Form.PaymentMethod" value="Card"
+                           checked="@(f.PaymentMethod == PaymentMethod.Card)" />
+                    <label class="segmented-option" for="pm-card"><i class="bi bi-credit-card" aria-hidden="true"></i>&nbsp;Carte</label>
+                    <input class="segmented-input" type="radio" id="pm-cod" name="Form.PaymentMethod" value="CashOnDelivery"
+                           checked="@(f.PaymentMethod == PaymentMethod.CashOnDelivery)" />
+                    <label class="segmented-option" for="pm-cod"><i class="bi bi-cash" aria-hidden="true"></i>&nbsp;Paiement à la livraison</label>
+                </div>
+
+                @* Card fields: interface only. No name attribute, so nothing is submitted. *@
+                <div class="pay-panel pay-panel--card">
+                    <div class="field">
+                        <label class="field-label" for="card-number">Numéro de carte</label>
+                        <input class="input-ui num" id="card-number" type="text" inputmode="numeric" autocomplete="off"
+                               placeholder="1234 5678 9012 3456" maxlength="19" data-card-number />
+                    </div>
+                    <div class="field-row">
+                        <div class="field">
+                            <label class="field-label" for="card-expiry">Expiration</label>
+                            <input class="input-ui num" id="card-expiry" type="text" inputmode="numeric" autocomplete="off"
+                                   placeholder="MM/AA" maxlength="5" data-card-expiry />
+                        </div>
+                        <div class="field">
+                            <label class="field-label" for="card-cvc">Cryptogramme</label>
+                            <input class="input-ui num" id="card-cvc" type="text" inputmode="numeric" autocomplete="off"
+                                   placeholder="123" maxlength="4" />
+                        </div>
+                    </div>
+                    <p class="field-hint">Ces champs ne sont pas envoyés : ils montrent seulement à quoi ressemblerait le formulaire.</p>
+                </div>
+                <div class="pay-panel pay-panel--cod">
+                    <p class="field-hint">Vous réglez en espèces au livreur, à la réception du colis.</p>
+                </div>
+            </fieldset>
+
+            <button type="submit" class="btn-ui btn-primary-ui btn-lg-ui checkout-submit" data-submit>
+                Confirmer la commande (@MoneyFormat.Mad(Model.Cart.Total))
+            </button>
+            <p class="field-hint checkout-hint">Démonstration : aucun paiement réel.</p>
+        </form>
+
+        <aside class="summary on-dark" aria-labelledby="h-order">
+            <h2 class="summary-title" id="h-order">Votre commande</h2>
+            <ul class="summary-lines" role="list">
+                @foreach (var line in Model.Cart.Lines)
+                {
+                    <li>
+                        <img src="@Url.Content("~/images/" + line.Product.ColorImagePath(line.Color ?? line.Product.DefaultColor()))" alt="" width="56" height="56"
+                             data-fallback="@Url.Content("~/images/" + ProductDisplay.FallbackImage)" />
+                        <span class="summary-line-name">
+                            @line.Product.Name
+                            @if (line.Options != "")
+                            {
+                                <span class="summary-line-options">@line.Options</span>
+                            }
+                            <span class="summary-line-qty num">× @line.Quantity</span>
+                        </span>
+                        <span class="num">@MoneyFormat.Mad(line.LineTotal)</span>
+                    </li>
+                }
+            </ul>
+            <dl class="summary-rows">
+                <div class="summary-total"><dt>Total</dt><dd class="num">@MoneyFormat.Mad(Model.Cart.Total)</dd></div>
+            </dl>
+            <a class="link-ui" asp-controller="Cart" asp-action="Index">Modifier le panier</a>
+        </aside>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

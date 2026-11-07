@@ -1,0 +1,48 @@
+@model ColorRow
+@{
+    // One « Couleur » row: name, swatch, its own photo (same dashed square as the main image),
+    // move up / down and remove. Bound as Colors[key].* with Colors.Index = key.
+    var k = Model.Key;
+    var p = $"Colors[{k}]";
+    var id = $"color-{k}";
+    var has = Model.ImageUrl != null;
+}
+<li class="variant-row variant-row--color" data-row>
+    <input type="hidden" name="Colors.Index" value="@k" />
+    @if (Model.Id != null)
+    {
+        <input type="hidden" name="@(p).Id" value="@Model.Id" />
+    }
+    <div class="dropzone dropzone--compact@(has ? " has-image" : "")" data-dropzone>
+        <input class="visually-hidden file-input" type="file" id="@id-image" name="@(p).ImageFile" accept="@ImageStorage.Accept"
+               aria-labelledby="@id-image-label" aria-describedby="@id-error" data-max-bytes="@ImageStorage.MaxBytes" data-error="@id-error" />
+        <span class="visually-hidden" id="@id-image-label">Photo de cette couleur</span>
+        <div class="dropzone-empty" data-dropzone-empty hidden="@has">
+            <i class="bi bi-upload dropzone-icon" aria-hidden="true"></i>
+            <label class="dropzone-chip dropzone-chip--quiet" for="@id-image">Choisir une image</label>
+        </div>
+        <div class="dropzone-preview" data-dropzone-preview hidden="@(!has)">
+            <img src="@Model.ImageUrl" alt="Aperçu de la couleur" width="240" height="240" data-preview-img data-current="@Model.ImageUrl" />
+            <div class="dropzone-actions">
+                <label class="dropzone-chip" for="@id-image" data-change-label>@(has ? "Changer l'image" : "Changer")</label>
+                <button type="button" class="dropzone-chip" data-remove-image hidden>Retirer</button>
+            </div>
+        </div>
+    </div>
+    <div class="variant-fields">
+        <div class="field">
+            <label class="field-label" for="@id-name">Nom de la couleur</label>
+            <input class="input-ui" id="@id-name" name="@(p).Name" value="@Model.Name" maxlength="40" autocomplete="off" placeholder="Ex. Bleu intense" />
+        </div>
+        <div class="field">
+            <label class="field-label" for="@id-hex">Teinte</label>
+            <input class="swatch-picker" type="color" id="@id-hex" name="@(p).Hex" value="@Model.Hex" />
+        </div>
+        <span class="field-error" id="@id-error" data-image-error></span>
+    </div>
+    <div class="variant-tools">
+        <button type="button" class="btn-ui btn-quiet-ui btn-icon-ui" data-move="-1" aria-label="Monter cette couleur"><i class="bi bi-arrow-up" aria-hidden="true"></i></button>
+        <button type="button" class="btn-ui btn-quiet-ui btn-icon-ui" data-move="1" aria-label="Descendre cette couleur"><i class="bi bi-arrow-down" aria-hidden="true"></i></button>
+        <button type="button" class="btn-ui btn-quiet-ui btn-quiet-danger btn-icon-ui" data-remove-row aria-label="Retirer cette couleur"><i class="bi bi-trash3" aria-hidden="true"></i></button>
+    </div>
+</li>
